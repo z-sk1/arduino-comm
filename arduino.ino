@@ -30,6 +30,8 @@ unsigned long lastMoveTime = 0;
 int servoStep = 5;  // how many degrees to move each step
 int servoDir = 1;
 
+unsigned long lastBuzzTime = 0;
+
 void setup() {
   Serial.begin(9600);
 
@@ -342,13 +344,14 @@ void loop() {
       int yVal = analogRead(joyY);
       int button = digitalRead(joyBtn);
       
-      static unsigned long lastUpdate = 0;
-      if (millis() - lastUpdate > 50) {  // update every 50ms
+      unsigned long currentTime = millis()
+      if (currentTime - lastBuzzTime >= 50) {  // update every 50ms
+        lastBuzzTime = currentTime;
+
         int freq = map(yVal, 0, 1023, 100, 2000);
         int duration = map(xVal, 0, 1023, 20, 300);
         int vibrato = sin(millis() / (duration * 5.0)) * 50;
         tone(BUZZ_PIN, freq + vibrato);
-        lastUpdate = millis();
       }
     }
   }
@@ -357,7 +360,7 @@ void loop() {
 void RGB(int delayTime) {
 
   digitalWrite(BLUE_LED_PIN, HIGH);
-
+asgsdds
   delay(delayTime);
 
   digitalWrite(BLUE_LED_PIN, LOW);

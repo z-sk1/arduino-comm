@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"os"
+	"time"
 
 	"github.com/ncruces/zenity"
 	"github.com/tarm/serial"
@@ -17,23 +17,8 @@ func main() {
 	portName := askForPort()
 	openPort(portName)
 
+	go readSerialLoop()
 	setupTray()
-
-	go func() {
-		buf := make([]byte, 128)
-		for {
-			n, err := Device.Port.Read(buf)
-			if err != nil {
-				fmt.Println("Read error:", err)
-				return
-			}
-			if n > 0 {
-				fmt.Print(string(buf[:n]))
-				// Force flush immediately
-				os.Stdout.Sync()
-			}
-		}
-	}()
 }
 
 func askForPort() string {
@@ -52,4 +37,20 @@ func openPort(comPort string) {
 	}
 
 	Device = arduino.New(port)
+}
+
+func readSerialLoop() {
+	buf := make([]byte, 128)
+	for {
+		n, err := Device.Port.Read(buf)
+		if err != nil {
+			fmt.Println("Read error:", err)
+			continue
+		}
+		if n > 0 {
+			fmt.Print(string(buf[:n]))
+		} else {
+			time.Sleep(10 * time.Millisecond)
+		}
+	}
 }

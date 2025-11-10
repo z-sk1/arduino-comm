@@ -7,7 +7,6 @@ import (
 
 	"strconv"
 
-	"fmt"
 
 	"github.com/getlantern/systray"
 	"github.com/ncruces/zenity"
@@ -40,6 +39,7 @@ func onReady() {
 	mToggleMelody := sBuzz.AddSubMenuItem("Play a Melody!", "Play a simple note sequence")
 	mToggleSiren := sBuzz.AddSubMenuItem("Play a Siren", "Play a Siren sound!")
 	mToggleMegalovania := sBuzz.AddSubMenuItem("Play MEGALOVANIA", "PLAY MEGALOVANIA :3")
+	mBuzzPrecise := sBuzz.AddSubMenuItem("Enter a Precise Frequency to Buzz", "Enter an exact frequency for the buzzer")
 	mBuzzControlJoystick := sBuzz.AddSubMenuItem("Control Buzzer using Joystick", "Control the Buzzer using a Joystick")
 
 	sPortal := sBuzz.AddSubMenuItem("Portal Themes", "Portal Themes Section for Buzz")
@@ -185,61 +185,95 @@ func onReady() {
 
 			case <-mTogglePortalThemeMain.ClickedCh:
 				if portalThemeMainOn {
-					Device.Exec("portalMainThemeOff")
+					if err := Device.Exec("portalMainThemeOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mTogglePortalThemeMain.SetTitle("Play Main Theme")
 					portalThemeMainOn = false
 				} else {
-					Device.Exec("portalMainThemeOn")
+					if err := Device.Exec("portalMainThemeOn"); err != nil {
+						log.Printf("Failed to send command : %v", err)
+					}
+
 					mTogglePortalThemeMain.SetTitle("Stop Playing Main Theme")
 					portalThemeMainOn = true
 				}
 
 			case <-mToggleApertureTheme.ClickedCh:
 				if apertureThemeOn {
-					Device.Exec("apertureThemeOff")
+					if err := Device.Exec("apertureThemeOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleApertureTheme.SetTitle("Play Aperture Theme")
 					apertureThemeOn = false
 				} else {
-					Device.Exec("apertureThemeOn")
+					if err := Device.Exec("apertureThemeOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleApertureTheme.SetTitle("Stop Playing Aperture Theme")
 					apertureThemeOn = true
 				}
 
 			case <-mToggleOverworldTheme.ClickedCh:
 				if overworldThemeOn {
-					Device.Exec("overworldThemeOff")
+					if err := Device.Exec("overworldThemeOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleOverworldTheme.SetTitle("Play Super Mario Bros. Overworld Theme")
 					overworldThemeOn = false
 				} else {
-					Device.Exec("overworldThemeOn")
+					if err := Device.Exec("overworldThemeOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleOverworldTheme.SetTitle("Stop playing Super Mario Bros. Overworld Theme")
 					overworldThemeOn = true
 				}
 
 			case <-mToggleUndergroundTheme.ClickedCh:
 				if undergroundThemeOn {
-					Device.Exec("undergroundThemeOff")
+					if err := Device.Exec("undergroundThemeOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleUndergroundTheme.SetTitle("Play Super Mario Bros. Underground Theme")
 					undergroundThemeOn = false
 				} else {
-					Device.Exec("undergroundThemeOn")
+					if err := Device.Exec("undergroundThemeOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleUndergroundTheme.SetTitle("Stop playing Super Mario Bros. Underground Theme")
 					undergroundThemeOn = true
 				}
 
 			case <-mRotate90.ClickedCh:
-				Device.Exec("rotateServo90")
+				if err := Device.Exec("rotateServo90"); err != nil {
+					log.Printf("Failed to send command: %v", err)
+				}
 
 			case <-mRotateNeg90.ClickedCh:
-				Device.Exec("rotateServo-90")
+				if err := Device.Exec("rotateServo-90"); err != nil {
+					log.Printf("Failed to send command: %v", err)
+				}
 
 			case <-mToggleSpin.ClickedCh:
 				if servoSpinOn {
-					Device.Exec("servoSpinOff")
+					if err := Device.Exec("servoSpinOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleSpin.SetTitle("Spin the Servo")
 					servoSpinOn = false
 				} else {
-					Device.Exec("servoSpinOn")
+					if err := Device.Exec("servoSpinOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleSpin.SetTitle("Stop spinning the Servo")
 					servoSpinOn = true
 				}
@@ -266,39 +300,82 @@ func onReady() {
 
 				deg = deg + "\n"
 
-				Device.Exec(fmt.Sprintf("rotatePrecise %s", deg))
+				if err := Device.Execf("rotatePrecise %s", deg); err != nil {
+					log.Printf("Failed to send command: %v", err)
+				}
 
 			case <-mControlJoystick.ClickedCh:
 				if servoJoystickOn {
-					Device.Exec("servoJoyControlOff")
+					if err := Device.Exec("servoJoyControlOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mControlJoystick.SetTitle("Control Servo with Joystick")
 					servoJoystickOn = false
 				} else {
-					Device.Exec("servoJoyControlOn")
+					if err := Device.Exec("servoJoyControlOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mControlJoystick.SetTitle("Stop Controlling Servo with Joystick")
 					servoJoystickOn = true
 				}
 
 			case <-mLightControlJoystick.ClickedCh:
 				if lightsJoystickOn {
-					Device.Exec("lightJoyControlOff")
+					if err := Device.Exec("lightJoyControlOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mLightControlJoystick.SetTitle("Control Lights with Joystick")
 					lightsJoystickOn = false
 				} else {
-					Device.Exec("lightJoyControlOn")
+					if err := Device.Exec("lightJoyControlOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mLightControlJoystick.SetTitle("Stop Controlling Lights with Joystick")
 					lightsJoystickOn = true
 				}
 
 			case <-mBuzzControlJoystick.ClickedCh:
 				if buzzerJoystickOn {
-					Device.Exec("buzzerJoyControlOff")
+					if err := Device.Exec("buzzerJoyControlOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mBuzzControlJoystick.SetTitle("Control Buzzer with Joystick")
 					buzzerJoystickOn = false
 				} else {
-					Device.Exec("buzzerJoyControlOn")
+					if err := Device.Exec("buzzerJoyControlOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mBuzzControlJoystick.SetTitle("Stop Controlling Buzzer with Joystick")
 					buzzerJoystickOn = true
+				}
+
+			case <-mBuzzPrecise.ClickedCh:
+				freq, err := zenity.Entry("Enter a precise frequency to Buzz: (100, 5000)")
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				intFreq, err := strconv.Atoi(freq)
+				if err != nil {
+					log.Println(err)
+				}
+
+				if intFreq >= 5000 {
+					freq = "5000"
+				}
+
+				if intFreq <= 100 {
+					freq = "100"
+				}
+
+				if err := Device.Execf("buzzPrecise %s", freq); err != nil {
+					log.Printf("Failed to send command: %v", err)
 				}
 
 			case <-mQuit.ClickedCh:
