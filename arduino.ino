@@ -1,10 +1,11 @@
 #include <Servo.h>
+#include <LedControl.h>
 
-#define BLUE_LED_PIN 10
-#define GREEN_LED_PIN 9
-#define RED_LED_PIN 8
-#define YELLOW_LED_PIN 12
-#define BUZZ_PIN 11
+#define BLUE_LED_PIN 11
+#define GREEN_LED_PIN 10
+#define RED_LED_PIN 9
+#define YELLOW_LED_PIN 13
+#define BUZZ_PIN 12
 
 bool rgbShowActive = false;
 bool melodyActive = false;
@@ -19,12 +20,17 @@ bool servoJoystickActive = false;
 bool lightJoystickActive = false;
 bool allLightsOnToggle = false;
 bool buzzerJoystickActive = false;
+bool ledMatrixLoopActive = false;
+bool ledMatrixSmileyActive = false;
 
 Servo servo;
 int servoPos;
 int joyX = A0;
 int joyY = A1;
 int joyBtn = 5;
+
+// pins: DIN, CLK, CS
+LedControl lc = LedControl(2, 4, 3, 1);
 
 unsigned long lastMoveTime = 0;
 int servoStep = 5;  // how many degrees to move each step
@@ -36,7 +42,7 @@ void setup() {
   Serial.begin(9600);
 
   servoPos = 90;
-  servo.attach(4);
+  servo.attach(6);
   servo.write(servoPos);
 
   pinMode(joyX, INPUT);
@@ -49,6 +55,10 @@ void setup() {
   pinMode(YELLOW_LED_PIN, OUTPUT);
 
   pinMode(BUZZ_PIN, OUTPUT);
+
+  lc.shutdown(0, false);
+  lc.setIntensity(0, 8);
+  lc.clearDisplay(0);
 
   Serial.println("Arduino ready!");
 }
@@ -209,7 +219,7 @@ void loop() {
       int deg = arg.toInt();
       servoPos = deg;
       servo.write(servoPos);
-      Serial.println("Rotated precisely!");
+      Serial.println("Rotated precisely at: " + arg + " deg");
 
     } else if (cmd == "servoJoyControlOn") {
       servoJoystickActive = true;
@@ -235,6 +245,55 @@ void loop() {
       buzzerJoystickActive = false;
       noTone(BUZZ_PIN);
       Serial.println("Controlling buzzer with joystick is off");
+
+    } else if (cmd == "buzzPrecise") {
+      int freq = arg.toInt();
+      tone(BUZZ_PIN, freq);
+      Serial.println("Buzzed precisely at: " + arg + " hz");
+
+    } else if (cmd == "buzzPreciseOff") {
+      noTone(BUZZ_PIN);
+      Serial.println("Stopped buzzing precisely");
+
+    } else if (cmd == "ledMatrixOn") {
+      ledMatrixLoopActive = true;
+      Serial.println("LED Matrix is on");
+
+    } else if (cmd == "ledMatrixOff") {
+      ledMatrixLoopActive = false;
+      Serial.println("LED Matrix is off");
+
+    } else if (cmd == "ledMatrixSmileyOn") {
+      ledMatrixSmileyActive = true;
+      Serial.println("LED Matrix Smiley is on");
+
+    } else if (cmd == "ledMatrixSmileyOff") {
+      ledMatrixSmileyActive = false;
+      Serial.println("LED Matrix Smiley is off");
+
+    } else if (cmd == "ledMatrixCountdown") {
+      Serial.println("Counting down on LED Matrix");
+
+      byte numbers[10][8] = {
+        {B00111100, B01100110, B01101110, B01110110, B01100110, B01100110, B00111100, B00000000}, // 0
+        {B00011000, B00111000, B00011000, B00011000, B00011000, B00011000, B00111100, B00000000}, // 1
+        {B00111100, B01100110, B00000110, B00001100, B00110000, B01100000, B01111110, B00000000}, // 2
+        {B00111100, B01100110, B00000110, B00011100, B00000110, B01100110, B00111100, B00000000}, // 3
+        {B00001100, B00011100, B00101100, B01001100, B01111110, B00001100, B00011110, B00000000}, // 4
+        {B01111110, B01100000, B01111100, B00000110, B00000110, B01100110, B00111100, B00000000}, // 5
+        {B00111100, B01100110, B01100000, B01111100, B01100110, B01100110, B00111100, B00000000}, // 6
+        {B01111110, B01100110, B00000110, B00001100, B00011000, B00011000, B00011000, B00000000}, // 7
+        {B00111100, B01100110, B01100110, B00111100, B01100110, B01100110, B00111100, B00000000}, // 8
+        {B00111100, B01100110, B01100110, B00111110, B00000110, B01100110, B00111100, B00000000}  // 9
+      };
+
+      for (int i = 9; i >= 0; i--) {
+        for (int row = 0; row < 8; row++) {
+          lc.setRow(0, row, numbers[i][row]);
+        }
+        delay(1000);
+      }
+      lc.clearDisplay(0);
 
     } else {
       Serial.print("unknown command: ");
@@ -338,20 +397,62 @@ void loop() {
         turnAllLEDsOff();
       }
     }
+  }
 
-    if (buzzerJoystickActive) {
-      int xVal = analogRead(joyX);
-      int yVal = analogRead(joyY);
-      int button = digitalRead(joyBtn);
-      
-      unsigned long currentTime = millis()
-      if (currentTime - lastBuzzTime >= 50) {  // update every 50ms
-        lastBuzzTime = currentTime;
+  if (buzzerJoystickActive) {
+    int xVal = analogRead(joyX);
+    int yVal = analogRead(joyY);
+    int button = digitalRead(joyBtn);
 
-        int freq = map(yVal, 0, 1023, 100, 2000);
-        int duration = map(xVal, 0, 1023, 20, 300);
-        int vibrato = sin(millis() / (duration * 5.0)) * 50;
-        tone(BUZZ_PIN, freq + vibrato);
+    int freq = map(yVal, 0, 1023, 100, 2000);
+
+    int duration = map(xVal, 0, 1023, 20, 300);
+
+    tone(BUZZ_PIN, freq + duration);
+  }
+
+  if (ledMatrixLoopActive) {
+    lc.setRow(0, 8, B00000000);
+    lc.setRow(0, 1, B11111111);
+    delay(500);
+    lc.setRow(0, 1, B00000000);
+    lc.setRow(0, 2, B11111111);
+    delay(500);
+    lc.setRow(0, 2, B00000000);
+    lc.setRow(0, 3, B11111111);
+    delay(500);
+    lc.setRow(0, 3, B00000000);
+    lc.setRow(0, 4, B11111111);
+    delay(500);
+    lc.setRow(0, 4, B00000000);
+    lc.setRow(0, 5, B11111111);
+    delay(500);
+    lc.setRow(0, 5, B00000000);
+    lc.setRow(0, 6, B11111111);
+    delay(500);
+    lc.setRow(0, 6, B00000000);
+    lc.setRow(0, 7, B11111111);
+    delay(500);
+    lc.setRow(0, 7, B00000000);
+    lc.setRow(0, 8, B11111111);
+  }
+
+  if (ledMatrixSmileyActive) {
+    byte smiley[8] = {
+      B00111100, //   ****
+      B01000010, //  *    *
+      B10100101, // * *  * *
+      B10000001, // *      *
+      B10100101, // * *  * *
+      B10011001, // *  **  *
+      B01000010, //  *    *
+      B00111100  //   ****
+    };
+
+    for (int row = 0; row < 8; row++) {
+      for (int col = 0; col < 8; col++) {
+        bool ledOn = bitRead(smiley[row], 7 - col);
+        lc.setLed(0, row, col, ledOn);
       }
     }
   }
@@ -360,7 +461,6 @@ void loop() {
 void RGB(int delayTime) {
 
   digitalWrite(BLUE_LED_PIN, HIGH);
-asgsdds
   delay(delayTime);
 
   digitalWrite(BLUE_LED_PIN, LOW);

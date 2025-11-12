@@ -7,7 +7,6 @@ import (
 
 	"strconv"
 
-
 	"github.com/getlantern/systray"
 	"github.com/ncruces/zenity"
 )
@@ -57,6 +56,11 @@ func onReady() {
 	mRotatePrecise := sServo.AddSubMenuItem("Enter a Precise Angle to Rotate", "Enter an exact degree to spin the servo")
 	mControlJoystick := sServo.AddSubMenuItem("Control the Servo with Joystick", "Control your Servo using a Joystick on the X-Axis")
 
+	sMatrix := systray.AddMenuItem("LED Matrix", "LED Matrix Section")
+	mTurnOnMatrix := sMatrix.AddSubMenuItem("Turn on LED Matrix", "Start a loop that turns on and off the matrix")
+	mTurnOnMatrixSmiley := sMatrix.AddSubMenuItem("Turn on Smiley Face", "Draw a Smiley Face on the LED Matrix")
+	mCountDownMatrix := sMatrix.AddSubMenuItem("Count Down", "Draw a count down from 9 - 0 on the LED Matrix")
+
 	systray.AddSeparator()
 
 	mQuit := systray.AddMenuItem("Quit", "Stop Controlling Arduino and Exit")
@@ -79,6 +83,9 @@ func onReady() {
 		servoJoystickOn    = false
 		lightsJoystickOn   = false
 		buzzerJoystickOn   = false
+		buzzingPreciselyOn = false
+		ledMatrixOn        = false
+		ledMatrixSmileyOn  = false
 	)
 
 	go func() {
@@ -86,99 +93,153 @@ func onReady() {
 			select {
 			case <-mToggleBlueLED.ClickedCh:
 				if blueLedOn {
-					Device.Exec("turnBlueLedOff")
+					if err := Device.Exec("turnBlueLedOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleBlueLED.SetTitle("Turn on Blue LED")
 					blueLedOn = false
 				} else {
-					Device.Exec("turnBlueLedOn")
+					if err := Device.Exec("turnBlueLedOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleBlueLED.SetTitle("Turn off Blue LED")
 					blueLedOn = true
 				}
 
 			case <-mToggleGreenLED.ClickedCh:
 				if greenLedOn {
-					Device.Exec("turnGreenLedOff")
+					if err := Device.Exec("turnGreenLedOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleGreenLED.SetTitle("Turn on Green LED")
 					greenLedOn = false
 				} else {
-					Device.Exec("turnGreenLedOn")
+					if err := Device.Exec("turnGreenLedOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleGreenLED.SetTitle("Turn off Green LED")
 					greenLedOn = true
 				}
 
 			case <-mToggleRedLED.ClickedCh:
 				if redLedOn {
-					Device.Exec("turnRedLedOff")
+					if err := Device.Exec("turnRedLedOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleRedLED.SetTitle("Turn on Red LED")
 					redLedOn = false
 				} else {
-					Device.Exec("turnRedLedOn")
+					if err := Device.Exec("turnRedLedOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleRedLED.SetTitle("Turn off Red LED")
 					redLedOn = true
 				}
 
 			case <-mToggleYellowLED.ClickedCh:
 				if yellowLedOn {
-					Device.Exec("turnYellowLedOff")
+					if err := Device.Exec("turnYellowLedOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleYellowLED.SetTitle("Turn on Yellow LED")
 					yellowLedOn = false
 				} else {
-					Device.Exec("turnYellowLedOn")
+					if err := Device.Exec("turnYellowLedOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleYellowLED.SetTitle("Turn off Yellow LED")
 					yellowLedOn = true
 				}
 
 			case <-mToggleBuzz.ClickedCh:
 				if buzzOn {
-					Device.Exec("turnBuzzOff")
+					if err := Device.Exec("turnBuzzOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleBuzz.SetTitle("Turn on Buzz")
 					buzzOn = false
 				} else {
-					Device.Exec("turnBuzzOn")
+					if err := Device.Exec("turnBuzzOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleBuzz.SetTitle("Turn off Buzz")
 					buzzOn = true
 				}
 
 			case <-mLightShow.ClickedCh:
 				if rgbShowOn {
-					Device.Exec("rgbShowOff")
+					if err := Device.Exec("rgbShowOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mLightShow.SetTitle("Turn on RGB Light Show")
 					rgbShowOn = false
 				} else {
-					Device.Exec("rgbShowOn")
+					if err := Device.Exec("rgbShowOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mLightShow.SetTitle("Turn off RGB Light Show")
 					rgbShowOn = true
 				}
 
 			case <-mToggleMelody.ClickedCh:
 				if melodyOn {
-					Device.Exec("melodyOff")
+					if err := Device.Exec("melodyOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleMelody.SetTitle("Play a Melody!")
 					melodyOn = false
 				} else {
-					Device.Exec("melodyOn")
+					if err := Device.Exec("melodyOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleMelody.SetTitle("Stop playing Melody")
 					melodyOn = true
 				}
 
 			case <-mToggleSiren.ClickedCh:
 				if sirenOn {
-					Device.Exec("sirenOff")
+					if err := Device.Exec("sirenOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleSiren.SetTitle("Play a Siren")
 					sirenOn = false
 				} else {
-					Device.Exec("sirenOn")
+					if err := Device.Exec("sirenOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleSiren.SetTitle("Stop playing Siren")
 					sirenOn = true
 				}
 
 			case <-mToggleMegalovania.ClickedCh:
 				if megalovaniaOn {
-					Device.Exec("megalovaniaOff")
+					if err := Device.Exec("megalovaniaOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleMegalovania.SetTitle("Play MEGALOVANIA")
 					megalovaniaOn = false
 				} else {
-					Device.Exec("megalovaniaOn")
+					if err := Device.Exec("megalovaniaOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
 					mToggleMegalovania.SetTitle("Stop Playing MEGALOVANIA")
 					megalovaniaOn = true
 				}
@@ -193,7 +254,7 @@ func onReady() {
 					portalThemeMainOn = false
 				} else {
 					if err := Device.Exec("portalMainThemeOn"); err != nil {
-						log.Printf("Failed to send command : %v", err)
+						log.Printf("Failed to send command: %v", err)
 					}
 
 					mTogglePortalThemeMain.SetTitle("Stop Playing Main Theme")
@@ -356,25 +417,77 @@ func onReady() {
 				}
 
 			case <-mBuzzPrecise.ClickedCh:
-				freq, err := zenity.Entry("Enter a precise frequency to Buzz: (100, 5000)")
-				if err != nil {
-					log.Fatal(err)
+				if buzzingPreciselyOn {
+					freq, err := zenity.Entry("Enter a precise frequency to Buzz: (100, 5000)")
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					intFreq, err := strconv.Atoi(freq)
+					if err != nil {
+						log.Println(err)
+					}
+
+					if intFreq >= 5000 {
+						freq = "5000"
+					}
+
+					if intFreq <= 100 {
+						freq = "100"
+					}
+
+					if err := Device.Execf("buzzPrecise %s", freq); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+					buzzingPreciselyOn = true
+				} else {
+					if err := Device.Exec("buzzPreciseOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
+					buzzingPreciselyOn = false
 				}
 
-				intFreq, err := strconv.Atoi(freq)
-				if err != nil {
-					log.Println(err)
+			case <-mTurnOnMatrix.ClickedCh:
+				if ledMatrixOn {
+					if err := Device.Exec("ledMatrixOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
+					mTurnOnMatrix.SetTitle("Turn on LED Matrix")
+
+					ledMatrixOn = false
+				} else {
+					if err := Device.Exec("ledMatrixOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
+					mTurnOnMatrix.SetTitle("Turn off LED Matrix")
+
+					ledMatrixOn = true
 				}
 
-				if intFreq >= 5000 {
-					freq = "5000"
+			case <-mTurnOnMatrixSmiley.ClickedCh:
+				if ledMatrixSmileyOn {
+					if err := Device.Exec("ledMatrixSmileyOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
+					mTurnOnMatrixSmiley.SetTitle("Turn off Smiley Face")
+
+					ledMatrixSmileyOn = false
+				} else {
+					if err := Device.Exec("ledMatrixSmileyOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
+					mTurnOnMatrixSmiley.SetTitle("Turn on Smiley Face")
+
+					ledMatrixSmileyOn = true
 				}
 
-				if intFreq <= 100 {
-					freq = "100"
-				}
-
-				if err := Device.Execf("buzzPrecise %s", freq); err != nil {
+			case <-mCountDownMatrix.ClickedCh:
+				if err := Device.Exec("ledMatrixCountdown"); err != nil {
 					log.Printf("Failed to send command: %v", err)
 				}
 
