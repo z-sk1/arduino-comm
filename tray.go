@@ -61,33 +61,37 @@ func onReady() {
 	mToggleMatrixSmiley := sMatrix.AddSubMenuItem("Turn on Smiley Face", "Draw a Smiley Face on the LED Matrix")
 	mCountDownMatrix := sMatrix.AddSubMenuItem("Count Down", "Draw a count down from 9 - 0 on the LED Matrix")
 	mRandomMatrix := sMatrix.AddSubMenuItem("Turn on Random LED Matrix", "Make every light turn on and off randomly")
+	mControlJoystickMatrix := sMatrix.AddSubMenuItem("Control LED Matrix using Joystick", "Create a bar graph using the x value and y value of the joystick to determine which column and row")
+
+	mClearLEDMatrix := sMatrix.AddSubMenuItem("Clear LED Matrix", "Clear the display and reset the matrix")
 
 	systray.AddSeparator()
 
 	mQuit := systray.AddMenuItem("Quit", "Stop Controlling Arduino and Exit")
 
 	var (
-		blueLedOn          = false
-		greenLedOn         = false
-		redLedOn           = false
-		yellowLedOn        = false
-		buzzOn             = false
-		rgbShowOn          = false
-		melodyOn           = false
-		sirenOn            = false
-		megalovaniaOn      = false
-		portalThemeMainOn  = false
-		apertureThemeOn    = false
-		overworldThemeOn   = false
-		undergroundThemeOn = false
-		servoSpinOn        = false
-		servoJoystickOn    = false
-		lightsJoystickOn   = false
-		buzzerJoystickOn   = false
-		buzzingPreciselyOn = false
-		ledMatrixOn        = false
-		ledMatrixSmileyOn  = false
-		ledMatrixRandomOn  = false
+		blueLedOn           = false
+		greenLedOn          = false
+		redLedOn            = false
+		yellowLedOn         = false
+		buzzOn              = false
+		rgbShowOn           = false
+		melodyOn            = false
+		sirenOn             = false
+		megalovaniaOn       = false
+		portalThemeMainOn   = false
+		apertureThemeOn     = false
+		overworldThemeOn    = false
+		undergroundThemeOn  = false
+		servoSpinOn         = false
+		servoJoystickOn     = false
+		lightsJoystickOn    = false
+		buzzerJoystickOn    = false
+		buzzingPreciselyOn  = false
+		ledMatrixOn         = false
+		ledMatrixSmileyOn   = false
+		ledMatrixRandomOn   = false
+		ledMatrixJoystickOn = false
 	)
 
 	go func() {
@@ -511,6 +515,28 @@ func onReady() {
 
 					ledMatrixRandomOn = true
 				}
+
+			case <-mControlJoystickMatrix.ClickedCh:
+				if ledMatrixJoystickOn {
+					if err := Device.Exec("ledMatrixJoyControlOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
+					mControlJoystickMatrix.SetTitle("Control LED Matrix using Joystick")
+
+					ledMatrixJoystickOn = false
+				} else {
+					if err := Device.Exec("ledMatrixJoyControlOn"); err != nil {
+						log.Printf("Faled to send command: %v", err)
+					}
+
+					mControlJoystickMatrix.SetTitle("Stop Controlling LED Matrix using Joystick")
+
+					ledMatrixJoystickOn = true
+				}
+
+			case <-mClearLEDMatrix.ClickedCh:
+				
 
 			case <-mQuit.ClickedCh:
 				systray.Quit()

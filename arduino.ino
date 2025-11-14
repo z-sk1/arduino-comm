@@ -336,6 +336,15 @@ void loop() {
       lc.clearDisplay(0);
       Serial.println("LED Matrix Random is off");
 
+    } else if (cmd == "ledMatrixJoyControlOn") {
+      ledMatrixJoystickActive = true;
+      Serial.println("LED Matrix Joystick control is on");
+
+    } else if (cmd == "ledMatrixJoyControlOff") {
+      ledMatrixJoystickActive = false;
+      lc.clearDisplay(0);
+      Serial.println("LED Matrix Joystick control is off");
+
     } else {
       Serial.print("unknown command: ");
       Serial.println(cmd);
@@ -513,7 +522,19 @@ void loop() {
   }
 
   if (ledMatrixJoystickActive) {
+    int xVal = analogRead(joyX);
+    int yVal = analogRead(joyY);
 
+    int levelX = map(xVal, 0, 1023, 0, 8);
+    int levelY = map(yVal, 0, 1023, 0, 8);
+
+    lc.clearDisplay(0);
+
+    for (int col = 0; col < levelX; col++) {
+      for (int row = 0; row < levelY; row++) {
+        lc.setLed(0, row, col, true);
+      }
+    }
   }
 }
 
