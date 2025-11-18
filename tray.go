@@ -53,6 +53,10 @@ func onReady() {
 		ledControlWithPot       = false
 		ledControlWithUltra     = false
 		ultraReadingOn          = false
+		ledMatrixUltraOn        = false
+		servoUltraOn            = false
+		buzzerUltraOn           = false
+		clockworkOn             = false
 	)
 
 	// menu items
@@ -67,13 +71,13 @@ func onReady() {
 	mControlLightWithUltra := sLights.AddSubMenuItem("Control the brightness with Ultrasound", "Turn on all LEDS and control their brightnesses with a Ultrasound Sensor")
 
 	sBuzz := systray.AddMenuItem("Buzzers", "Buzzer section")
-
 	mToggleBuzz := sBuzz.AddSubMenuItem("Turn on Buzz", "Turn on the Buzz")
 	mToggleMelody := sBuzz.AddSubMenuItem("Play a Melody!", "Play a simple note sequence")
 	mToggleSiren := sBuzz.AddSubMenuItem("Play a Siren", "Play a Siren sound!")
 	mToggleMegalovania := sBuzz.AddSubMenuItem("Play MEGALOVANIA", "PLAY MEGALOVANIA :3")
 	mBuzzPrecise := sBuzz.AddSubMenuItem("Enter a Precise Frequency to Buzz", "Enter an exact frequency for the buzzer")
 	mBuzzControlJoystick := sBuzz.AddSubMenuItem("Control Buzzer using Joystick", "Control the Buzzer using a Joystick")
+	mBuzzControlUltra := sBuzz.AddSubMenuItem("Control Buzzer using Ultrasound", "Control the Buzzer using an Ultrasound Sensor")
 
 	sPortal := sBuzz.AddSubMenuItem("Portal Themes", "Portal Themes Section for Buzz")
 	mTogglePortalThemeMain := sPortal.AddSubMenuItem("Play Main Theme", "Play the Main Theme of Portal 2")
@@ -83,12 +87,16 @@ func onReady() {
 	mToggleOverworldTheme := sMario.AddSubMenuItem("Play Super Mario Bros. Overworld Theme", "Play the iconic 1-1 overworld theme in the og Mario")
 	mToggleUndergroundTheme := sMario.AddSubMenuItem("Play Super Mario Bros. Underground Theme", "Play the iconic 1-2 underground them in the og Mario")
 
+	sSilksong := sBuzz.AddSubMenuItem("Silksong Themes", "Hollow Knight: Silksong Themes Sections for Buzz")
+	mToggleClockworkTheme := sSilksong.AddSubMenuItem("Play Clockwork Dancers Theme", "Play the Theme for the Clockwork Dancers boss fight")
+
 	sServo := systray.AddMenuItem("Servos", "Servos section")
 	mRotate90 := sServo.AddSubMenuItem("Rotate 90 Degrees", "Rotate the servo by 90 Degrees")
 	mRotateNeg90 := sServo.AddSubMenuItem("Rotate Negative 90 Degrees", "Rotate the servo by Negative 90 Degrees")
 	mToggleSpin := sServo.AddSubMenuItem("Spin the Servo", "Keep on Spinning the Servo")
 	mRotatePrecise := sServo.AddSubMenuItem("Enter a Precise Angle to Rotate", "Enter an exact degree to spin the servo")
 	mControlJoystick := sServo.AddSubMenuItem("Control the Servo with Joystick", "Control your Servo using a Joystick on the X-Axis")
+	mControlUltraServo := sServo.AddSubMenuItem("Control the Servo with Ultrasound Sensor", "Move your hand closer to the sensor to move it to 0 deg, and the opposite to move it closer to 180 deg")
 
 	sMatrix := systray.AddMenuItem("LED Matrix", "LED Matrix Section")
 	mToggleMatrix := sMatrix.AddSubMenuItem("Turn on LED Matrix", "Start a loop that turns on and off the matrix")
@@ -98,6 +106,7 @@ func onReady() {
 	sControlJoystickMatrix := sMatrix.AddSubMenuItem("Control LED Matrix using Joystick", "Create a bar graph using the x value and y value of the joystick to determine which column and row")
 	mControlJoystickMatrixGrid := sControlJoystickMatrix.AddSubMenuItem("Use Grid", "Control using a grid format")
 	mControlJoystickMatrixAim := sControlJoystickMatrix.AddSubMenuItem("Use Crosshair", "Control using a crosshair format")
+	mControlUltraMatrix := sMatrix.AddSubMenuItem("Control LED Matrix using Ultrasound Sensor", "Get closer to the ultrasound to make the square smaller")
 
 	mClearLEDMatrix := sMatrix.AddSubMenuItem("Clear LED Matrix", "Clear the display and reset the matrix")
 	mChangeBrightnessMatrix := sMatrix.AddSubMenuItem("Change Brightness", "Change the brightness to a number between 1-15")
@@ -653,6 +662,82 @@ func onReady() {
 					mReadUltrasoundDist.SetTitle("Stop Reading Ultrasound Distance")
 
 					ultraReadingOn = true
+				}
+
+			case <-mControlUltraServo.ClickedCh:
+				if servoUltraOn {
+					if err := Device.Exec("servoUltraControlOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
+					mControlUltraServo.SetTitle("Control Servo with Ultrasound")
+
+					servoUltraOn = false
+				} else {
+					if err := Device.Exec("servoUltraControlOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
+					mControlUltraServo.SetTitle("Stop Controlling Servo with Ultrasound")
+
+					servoUltraOn = true
+				}
+
+			case <-mControlUltraMatrix.ClickedCh:
+				if ledMatrixUltraOn {
+					if err := Device.Exec("ledMatrixUltraControlOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
+					mControlUltraMatrix.SetTitle("Control LED Matrix with Ultrasound")
+
+					ledMatrixUltraOn = false
+				} else {
+					if err := Device.Exec("ledMatrixUltraControlOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
+					mControlUltraMatrix.SetTitle("Stop Controlling LED Matrix with Ultrasound")
+
+					ledMatrixUltraOn = true
+				}
+
+			case <-mBuzzControlUltra.ClickedCh:
+				if buzzerUltraOn {
+					if err := Device.Exec("buzzerUltraControlOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
+					mBuzzControlUltra.SetTitle("Control Buzzer with Ultrasound")
+
+					buzzerUltraOn = false
+				} else {
+					if err := Device.Exec("buzzerUltraControlOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
+					mBuzzControlUltra.SetTitle("Stop Controlling Buzzer with Ultrasound")
+
+					buzzerUltraOn = true
+				}
+
+			case <-mToggleClockworkTheme.ClickedCh:
+				if clockworkOn {
+					if err := Device.Exec("clockworkThemeOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
+					mToggleClockworkTheme.SetTitle("Play Clockwork Dancers Theme")
+
+					clockworkOn = false
+				} else {
+					if err := Device.Exec("clockworkThemeOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
+					mToggleClockworkTheme.SetTitle("Stop playing Clockwork Dancers Theme")
+
+					clockworkOn = true
 				}
 
 			case <-mQuit.ClickedCh:

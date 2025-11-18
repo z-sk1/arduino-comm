@@ -25,9 +25,13 @@ bool ledMatrixSmileyActive = false;
 bool ledMatrixRandomActive = false;
 bool ledMatrixJoystickGridActive = false;
 bool ledMatrixJoystickAimActive = false;
+bool ledMatrixUltrasoundActive = false;
 bool potControlLED = false;
 bool ultrasoundControlLED = false;
 bool ultrasoundReadActive = false;
+bool servoUltrasoundActive = false;
+bool buzzerUltrasoundActive = false;
+bool clockworkActive = false;
 
 const int num_servo = 2;
 
@@ -401,6 +405,43 @@ void loop() {
       turnAllLEDsOff();
       Serial.println("Controlling LED Brightness with Ultrasound is off");
 
+    } else if (cmd == "ledMatrixUltraControlOn") {
+      ledMatrixUltrasoundActive = true;
+      Serial.println("LED Matrix Ultrasound control is on");
+
+    } else if (cmd == "ledMatrixUltraControlOff") {
+      ledMatrixUltrasoundActive = false;
+      lc.clearDisplay(0);
+      Serial.println("LED Matrix Ultrasound control is off");
+
+    } else if (cmd == "servoUltraControlOn") {
+      servoUltrasoundActive = true;
+      Serial.println("Servo Ultrasound control is on");
+
+    } else if (cmd == "servoUltraControlOff") {
+      servoUltrasoundActive = false;
+      for (int i = 0; i < num_servo; i++) {
+        servo[i].write(90);
+      }
+      
+    } else if (cmd == "buzzerUltraControlOn") {
+      buzzerUltrasoundActive = true;
+      Serial.println("Buzzer Ultrasound control is on");
+
+    } else if (cmd == "buzzerUltraControlOff") {
+      buzzerUltrasoundActive = false;
+      noTone(BUZZ_PIN);
+      Serial.println("Buzzer Ultrasound control is off");
+
+    } else if (cmd == "clockworkThemeOn") {
+      clockworkActive = true;
+      Serial.println("Clockwork Dancers Theme is on");
+
+    } else if (cmd == "clockworkThemeOff") {
+      clockworkActive = false;
+      noTone(BUZZ_PIN);
+      Serial.println("Clockwork Dancers Theme is off");
+
     } else {
       Serial.print("unknown command: ");
       Serial.println(cmd);
@@ -439,6 +480,10 @@ void loop() {
     marioUnderground();
   }
 
+  if (clockworkActive) {
+    clockworkDancers();
+  }
+
   if (servoSpinActive) {
     servoSpinNonBlocking();
   }
@@ -462,9 +507,6 @@ void loop() {
 
       int avgX = totalX / samples;
       int avgY = totalY / samples;
-
-      // Apply deadzone
-      if (abs(avgX - center) < deadzone) avgX = center;
       if (abs(avgY - center) < deadzone) avgY = center;
 
       int posX = map(avgX, 0, 1023, 0, 180);
@@ -472,6 +514,18 @@ void loop() {
 
       servo[0].write(posX);
       servo[1].write(posY);
+    }
+  }
+
+  if (servoUltrasoundActive) {
+    long dist = getDistance();
+
+    dist = constrain(dist, 5, 50);
+
+    int angle = map(dist, 5, 50, 0, 180);
+
+    for (int i = 0; i < num_servo; i++) {
+      servo[i].write(angle);
     }
   }
 
@@ -532,14 +586,7 @@ void loop() {
   float smoothDist = 0;
 
   if (ultrasoundControlLED) {
-    digitalWrite(trigPin, LOW);
-    delayMicroseconds(2);
-    digitalWrite(trigPin, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(trigPin, LOW);
-
-    long dur = pulseIn(echoPin, HIGH);
-    float dist = dur * 0.034 / 2;
+    long dist = getDistance();
 
     float alpha = 0.1;
     smoothDist = alpha * dist + (1 - alpha) * smoothDist;
@@ -564,6 +611,14 @@ void loop() {
 
     tone(BUZZ_PIN, freq + duration);
   }
+
+  if (buzzerUltrasoundActive) {
+    long dist = getDistance();
+
+    int freq = map(dist, 5, 50, 100, 2000);
+
+    tone(BUZZ_PIN, freq);
+   }
 
   if (ledMatrixLoopActive) {
     lc.setRow(0, 8, B00000000);
@@ -692,7 +747,7 @@ void loop() {
     }
   }
 
-  float smoothDist = 30;
+  smoothDist = 30;
   if (ledMatrixUltrasoundActive) {
     long dist = getDistance();
 
@@ -941,6 +996,39 @@ void siren() {
   for (int freq = 1000; freq >= 400; freq -= 10) {
     tone(BUZZ_PIN, freq);
     delay(5);
+  }
+}
+
+void clockworkDancers() {
+  int melody[] {
+    196, 131, 147, 156, 175,
+    175, 196, 208,
+    196, 131, 147, 156, 175,
+    175, 196, 208,
+    196, 117, 156, 196, 233,
+    233, 208, 196, 208, 
+    131, 175, 156, 147,
+    156, 147, 123,
+  };
+
+  int noteDuration[] = {
+    250, 250, 250, 250,
+    250, 250, 250,
+    300, 250, 250, 250, 250,
+    250, 250, 250,
+    300, 250, 250, 250, 250,
+    250, 250, 250,
+    300, 250, 250, 250, 250,
+    250, 250, 250, 250,
+  };
+
+  int length = sizeof(melody) / sizeof(melody[0]);
+
+  for (int i = 0; i < length; i++) {
+    if (melody[i] > 0) tone(BUZZ_PIN, melody[i]);
+    delay(noteDuration[i]);
+    noTone(BUZZ_PIN);
+    delay(10);
   }
 }
 
