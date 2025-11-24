@@ -59,6 +59,7 @@ func onReady() {
 		clockworkOn             = false
 		lcdOn                   = false
 		lcdAutoscrollOn         = false
+		lcdServoDebugOn = false
 	)
 
 	// menu items
@@ -123,6 +124,9 @@ func onReady() {
 	sLCDPrint := sLCD.AddSubMenuItem("Print Text", "Print Text to the LCD Display")
 	mLCDPrintStatic := sLCDPrint.AddSubMenuItem("Static", "Print Static Text")
 	mLCDPrintMoving := sLCDPrint.AddSubMenuItem("Autoscrolling", "Print Moving Text")
+
+	sLCDDebug := sLCD.AddSubMenuItem("Debug", "debug with lcd sections")
+	mLCDDebugServo := sLCDDebug.AddSubMenuItem("Debug Servo", "Debug the Servo by printing the angle for them in degrees")
 
 	mLCDCursor := sLCD.AddSubMenuItem("Go To", "Guide the cursor anywhere you want on the Display using x and y coords")
 	mLCDClear := sLCD.AddSubMenuItem("Clear Display", "Clear the LCD Display and reset everything on it")

@@ -662,11 +662,16 @@ void loop() {
   }
 
   if (lcdServoDebugActive) {
+    int angle[2];
 
     for (int i = 0; i < num_servo; i++) {
-      int angles[2] = {
-        servo[0].read()
-      };
+      angle[i] = servo[i].read();
+    }
+
+    lcd.setCursor(0, 0);
+
+    for (int i = 1; i < num_servo + 1; i++) {
+      lcd.print("Servo " + i + ":" + angle[i - 1] + "degrees");
     }
   }
 
