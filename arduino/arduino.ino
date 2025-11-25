@@ -593,10 +593,20 @@ void loop() {
       Serial.println("Cleared LCD Display");
       
     } else if (cmd == "lcdDebugServoOn") {
+      if (!lcdActive) {
+        Serial.println("Turn on LCD first!");
+        return;
+      }
+
       lcdServoDebugActive = true;
       Serial.println("Debugging servo on LCD is on");
 
     } else if (cmd == "lcdDebugServoOff") {
+      if (!lcdActive) {
+        Serial.println("Turn on LCD first!");
+        return;
+      }
+
       lcdServoDebugActive = false;
       lcd.clear();
       Serial.println("Debugging servo on LCD is off");
@@ -668,11 +678,12 @@ void loop() {
       angle[i] = servo[i].read();
     }
 
+    lcd.clear();
     lcd.setCursor(0, 0);
+    lcd.print("Servo 1: " + String(angle[0]));
 
-    for (int i = 1; i < num_servo + 1; i++) {
-      lcd.print("Servo " + i + ":" + angle[i - 1] + "degrees");
-    }
+    lcd.setCursor(0, 1);
+    lcd.print("Servo 2: " + String(angle[1]));
   }
 
   if (servoJoystickActive) {

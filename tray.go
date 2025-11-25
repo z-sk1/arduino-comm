@@ -59,7 +59,7 @@ func onReady() {
 		clockworkOn             = false
 		lcdOn                   = false
 		lcdAutoscrollOn         = false
-		lcdServoDebugOn = false
+		lcdServoDebugOn         = false
 	)
 
 	// menu items
@@ -873,6 +873,30 @@ func onReady() {
 
 				if err := Device.Exec("lcdClear"); err != nil {
 					log.Printf("Failed to send command: %v", err)
+				}
+
+			case <-mLCDDebugServo.ClickedCh:
+				if !lcdOn {
+					zenity.Error("Turn on LCD Display First!")
+					return
+				}
+
+				if lcdServoDebugOn {
+					if err := Device.Exec("lcdDebugServoOff"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
+					mLCDDebugServo.SetTitle("Stop Debugging Servo")
+
+					lcdServoDebugOn = false
+				} else {
+					if err := Device.Exec("lcdDebugServoOn"); err != nil {
+						log.Printf("Failed to send command: %v", err)
+					}
+
+					mLCDDebugServo.SetTitle("Debug Servo")
+
+					lcdServoDebugOn = true
 				}
 
 			case <-mQuit.ClickedCh:
