@@ -1,4 +1,4 @@
-module github.com/z-sk1/arduino
+module github.com/z-sk1/arduino-comm
 
 go 1.24.2
 
